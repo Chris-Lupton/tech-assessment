@@ -22,3 +22,12 @@ export function getCompaniesWithUserId(userId: string) {
     }
   });
 }
+
+export function getUniqueCompanies() {
+  return prisma.company.findMany({
+    select: {
+        name: true
+    },
+    distinct: ['name']
+  })
+}

@@ -14,14 +14,20 @@ export function getJob(id: string) {
   });
 }
 
-export function getJobListItems(contractLength?: string, contractType?: string) {
+export function getJobListItems(contractLength?: string, contractType?: string, location?: string, company?: string) {
 
-  const filters: Record<string, string> = {}
+  const filters: Record<string, string | Record<string, string>> = {}
   if(contractLength){
     filters['contractLength'] = contractLength
   }
   if(contractType){
     filters['contractType'] = contractType
+  }
+  if(location){
+    filters['location'] = location
+  }
+  if(company){
+    filters['company'] = {name: company}
   }
   return prisma.job.findMany({
     select: {

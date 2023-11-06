@@ -5,19 +5,24 @@ import { getJobListItems } from "~/models/job.server";
 import { json } from "@remix-run/node";
 import { JobFilter } from "~/components/job-filter";
 import { getUniqueLocations } from "~/models/job.server";
+import { getUniqueCompanies } from "~/models/company.server";
 
 type LoaderData = {
   jobs: Awaited<ReturnType<typeof getJobListItems>>;
   locations: Awaited<ReturnType<typeof getUniqueLocations>>;
+  companies: Awaited<ReturnType<typeof getUniqueCompanies>>;
 };
 
 export const loader: LoaderFunction = async ({request}) => {
   const url = new URL(request.url);
   const filterLength = url.searchParams.get("contractLength");
   const filterType = url.searchParams.get("contractType");
-  const jobs = await getJobListItems(filterLength, filterType);
+  const location = url.searchParams.get("location");
+  const company = url.searchParams.get("company");
+  const jobs = await getJobListItems(filterLength, filterType, location, company);
   const locations = await getUniqueLocations()
-  return json<LoaderData>({ jobs, locations });
+  const companies = await getUniqueCompanies()
+  return json<LoaderData>({ jobs, locations, companies });
 };
 
 export default function JobsIndexPage(): JSX.Element {
@@ -36,13 +41,13 @@ export default function JobsIndexPage(): JSX.Element {
         >
           <div className="card-body">
             <h3 className="card-title">Filter Jobs</h3>
-            <JobFilter locations={data.locations}/>
+            <JobFilter locations={data.locations} companies={data.companies}/>
           </div>
         </div>
       </div>
       </div>
       <div className="flex flex-wrap gap-4 p-8">
-        {data.jobs.map((job) => (
+        {data.jobs.length ? data.jobs.map((job) => (
           <div key={job.id} className="card w-96 bg-base-300 shadow-xl">
             <div className="card-body">
               <img
@@ -93,7 +98,11 @@ export default function JobsIndexPage(): JSX.Element {
               </div>
             </div>
           </div>
-        ))}
+        )) : 
+      <div className="alert w-auto">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-info shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>No Jobs found matching your search</span>
+      </div>}
       </div>
     </>
   );
